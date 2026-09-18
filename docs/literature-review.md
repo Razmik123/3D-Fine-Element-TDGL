@@ -19,14 +19,14 @@ No single paper supplies the complete method required here. The recommended solv
 
 | Source | Equations and gauge | Spatial discretization | Boundary/exterior treatment | Time integration |
 |---|---|---|---|---|
-| Hong et al. 2023 | TDGL, temporal gauge | complex Lagrange \(H^1\) for \(\psi\); second-family Nédélec \(H(\mathrm{curl})\) for \(\mathbf A\) | bounded sample; natural superconducting boundary data; no all-space exterior | nonlinear backward step; Newton with block preconditioner |
-| Gao–Sun 2018 | TDGL, Lorenz gauge; \(\boldsymbol\sigma=\nabla\times\mathbf A\) mixed form | Lagrange \(H^1\), first-family Nédélec \(H(\mathrm{curl})\), Raviart–Thomas \(H(\mathrm{div})\) | simply connected bounded Lipschitz/polyhedral domain | linearized backward Euler |
+| Hong et al. 2023 | TDGL, temporal gauge | complex Lagrange $H^1$ for $\psi$; second-family Nédélec $H(\mathrm{curl})$ for $\mathbf A$ | bounded sample; natural superconducting boundary data; no all-space exterior | nonlinear backward step; Newton with block preconditioner |
+| Gao–Sun 2018 | TDGL, Lorenz gauge; $\boldsymbol\sigma=\nabla\times\mathbf A$ mixed form | Lagrange $H^1$, first-family Nédélec $H(\mathrm{curl})$, Raviart–Thomas $H(\mathrm{div})$ | simply connected bounded Lipschitz/polyhedral domain | linearized backward Euler |
 | Li–Zhang 2015/2017 | TDGL, Lorenz gauge recast by 2-D Hodge potentials | nodal scalar FEM after Hodge decomposition | curved/nonconvex polygons; only simply connected equivalence | linearized implicit step |
 | Du–Gunzburger–Peterson 1992 | stationary GL, gauge-equivalent formulations | continuous quadratic nodal FEM | 2-D periodic cell | equilibrium iteration/minimization |
 | Du 1994/1998 | TDGL; gauge-covariant/discrete gauge-invariant variants | Galerkin FEM or link/difference formulation | bounded model domains | semidiscrete and fully discrete schemes |
 | Gunter–Kaper–Leaf 2002 | TDGL with link-variable gauge consistency | structured differences | superconducting region with thin insulating setting | four methods from explicit to fully nonlinear implicit |
 | Winiecki–Adams 2002 | 3-D TDGL + MQS normal/self current | Cartesian link-variable differences | finite wire; self-field iterated by Biot–Savart | semi-implicit Crank–Nicolson and fractional steps |
-| Sadovskyy et al. 2015 | 3-D TDGL; \(\nabla\cdot\mathbf A=0\)-type convention; scalar-potential current constraint | structured GPU finite differences/link variables | open covariant Neumann or quasiperiodic; usually prescribed applied \(\mathbf A\) | implicit Crank–Nicolson, linearized cubic, Jacobi iteration |
+| Sadovskyy et al. 2015 | 3-D TDGL; $\nabla\cdot\mathbf A=0$-type convention; scalar-potential current constraint | structured GPU finite differences/link variables | open covariant Neumann or quasiperiodic; usually prescribed applied $\mathbf A$ | implicit Crank–Nicolson, linearized cubic, Jacobi iteration |
 | Oripov–Anlage 2020 | 3-D TDGL in S + Maxwell in V; scalar potential set by chosen formulation | COMSOL general nodal PDE on free tetrahedra | no-normal-current S–V interface; applied field on remote vacuum boundary | COMSOL BDF, direct MUMPS, maximum nondimensional step 1 |
 | Lara et al. 2020 | 3-D TDGL, temporal gauge | Cartesian link variables | field imposed on sample boundary; no demagnetizing exterior | explicit/iterative evolution as reported by implementation |
 | Doria et al. 2006 | stationary 3-D GL | structured variational discretization | de Gennes condition on insulating spheres | energy minimization, not TDGL time stepping |
@@ -35,10 +35,10 @@ No single paper supplies the complete method required here. The recommended solv
 | Gao–Li–Sun 2014 | TDGL Galerkin formulation | conforming nodal FEM under paper assumptions | bounded domain | linearized Crank–Nicolson, second order |
 | Feischl–Tran 2016/2017 | MQS eddy current + LLG, not TDGL | interior 3-D FEM/Nédélec plus BEM traces | exact unbounded electromagnetic exterior | linear systems per implicit time step; convergence/error analysis |
 | Bao et al. 2023 | time-harmonic full-wave Maxwell, no TDGL | 3-D edge FEM | spherical DtN radiation boundary with truncation estimator | frequency-domain, no transient step |
-| Chen–Guo–Zou 2022 | Maxwell interface problem, no TDGL | immersed Nédélec-type \(H(\mathrm{curl})\) and de Rham spaces | unfitted material interface | static/frequency-domain linear solve |
+| Chen–Guo–Zou 2022 | Maxwell interface problem, no TDGL | immersed Nédélec-type $H(\mathrm{curl})$ and de Rham spaces | unfitted material interface | static/frequency-domain linear solve |
 | Xue et al. 2024 | review of several TDGL variants/applications | surveys finite-difference/FEM practices | surveys pinning, SRF, and material configurations | review, not a new integrator |
 
-This table is deliberately explicit about omissions: a paper that has excellent time integration but prescribes \(\mathbf A\) does not validate an exterior self-field solve, and a rigorous exterior Maxwell paper does not validate superconducting dynamics.
+This table is deliberately explicit about omissions: a paper that has excellent time integration but prescribes $\mathbf A$ does not validate an exterior self-field solve, and a rigorous exterior Maxwell paper does not validate superconducting dynamics.
 
 ## Governing-model sources
 
@@ -46,7 +46,7 @@ This table is deliberately explicit about omissions: a paper that has excellent 
 
 **Citations.** A. Schmid, “A time dependent Ginzburg–Landau equation and its application to the problem of resistivity in the mixed state,” *Physik der kondensierten Materie* 5, 302–317 (1966), [DOI: 10.1007/BF02422669](https://doi.org/10.1007/BF02422669). L. P. Gor'kov and G. M. Eliashberg, “Generalization of the Ginzburg–Landau equations for non-stationary problems in the case of alloys with paramagnetic impurities,” *Soviet Physics JETP* 27, 328–334 (1968), [catalog record](https://www.jetp.ras.ru/cgi-bin/e/index/e/27/2/p328?a=list).
 
-These are the historical foundations for dissipative, gauge-covariant TDGL near the critical temperature. The order parameter evolves by a covariant time derivative and couples to electric and magnetic potentials; the electromagnetic equation contains superconducting and normal current. They justify the phenomenological model but do not prescribe a modern 3-D finite-element space, exterior truncation, or robust nonlinear solver. Their microscopic validity is restricted: conventional gapless/dirty superconductors near (T_c) are the natural regime, and quantitative low-temperature dynamics or strong nonequilibrium physics needs a more microscopic theory.
+These are the historical foundations for dissipative, gauge-covariant TDGL near the critical temperature. The order parameter evolves by a covariant time derivative and couples to electric and magnetic potentials; the electromagnetic equation contains superconducting and normal current. They justify the phenomenological model but do not prescribe a modern 3-D finite-element space, exterior truncation, or robust nonlinear solver. Their microscopic validity is restricted: conventional gapless/dirty superconductors near $T_c$ are the natural regime, and quantitative low-temperature dynamics or strong nonequilibrium physics needs a more microscopic theory.
 
 ### Xue et al. (2024): applications review
 
@@ -60,11 +60,11 @@ This modern review organizes applications around vortex ratchets/diodes, pinning
 
 These works retain the displacement-current term, schematically
 
-\[
+$$
 \epsilon(\partial_{tt}\mathbf A+\nabla\partial_t\phi)
 +\sigma(\partial_t\mathbf A+\nabla\phi)
 +\nabla\times\mu^{-1}\nabla\times\mathbf A+\mathbf J_s=\mathbf J_{\rm ext}.
-\]
+$$
 
 They establish that “TDGL–Maxwell” can mean a hyperbolic electromagnetic-wave system, not merely eddy-current coupling. For vortex motion, DC transport, and dimensions much smaller than the electromagnetic wavelength, the magnetoquasistatic (MQS) omission of the first term is normally the appropriate baseline. RF radiation, resonant cavities, or wavelength-scale devices require the full-wave branch, its radiation boundary treatment, and a different time-step restriction. The two models will be kept distinct in this project.
 
@@ -74,9 +74,9 @@ They establish that “TDGL–Maxwell” can mean a hyperbolic electromagnetic-w
 
 **Citation.** Q. Hong, L. Ma, J. Xu, and L.-Q. Chen, “An efficient iterative method for dynamical Ginzburg–Landau equations,” *Journal of Computational Physics* 474, 111794 (2023), [DOI: 10.1016/j.jcp.2022.111794](https://doi.org/10.1016/j.jcp.2022.111794), [arXiv](https://arxiv.org/abs/2207.01425), [local PDF](../papers/hong-ma-xu-2022-nedelec-tdgl.pdf).
 
-The paper works in temporal gauge and discretizes the complex order parameter with (H^1)-conforming Lagrange elements and the magnetic vector potential with lowest-order, second-family Nédélec edge elements in (H(\mathrm{curl})). Backward time stepping produces a nonlinear system solved by Newton iteration; a block preconditioner is developed. Numerical tests include nonsmooth/reentrant geometries and show the practical advantage of a curl-conforming vector potential.
+The paper works in temporal gauge and discretizes the complex order parameter with $H^1$-conforming Lagrange elements and the magnetic vector potential with lowest-order, second-family Nédélec edge elements in $H(\mathrm{curl})$. Backward time stepping produces a nonlinear system solved by Newton iteration; a block preconditioner is developed. Numerical tests include nonsmooth/reentrant geometries and show the practical advantage of a curl-conforming vector potential.
 
-**Relevance.** This is the closest direct foundation for the superconducting part of the proposed 3-D method: it preserves the natural Maxwell regularity and avoids falsely assuming \(\mathbf A\in H^1\) on nonconvex domains.
+**Relevance.** This is the closest direct foundation for the superconducting part of the proposed 3-D method: it preserves the natural Maxwell regularity and avoids falsely assuming $\mathbf A\in H^1$ on nonconvex domains.
 
 **Limitations.** The electromagnetic problem is posed on the computational/sample domain with prescribed boundary data, not on an unbounded vacuum exterior. Temporal gauge is convenient for magnetic-only tests but does not by itself provide a physical scalar potential for voltage-driven transport. Multiply connected harmonic fields and S–N proximity interfaces are not the main subject.
 
@@ -84,7 +84,7 @@ The paper works in temporal gauge and discretizes the complex order parameter wi
 
 **Citation.** H. Gao and W. Sun, “Analysis of linearized Galerkin-mixed FEMs for the time-dependent Ginzburg–Landau equations of superconductivity,” *Advances in Computational Mathematics* 44, 923–949 (2018), [DOI: 10.1007/s10444-017-9568-2](https://doi.org/10.1007/s10444-017-9568-2), [arXiv](https://arxiv.org/abs/1508.05601), [local PDF](../papers/gao-sun-2016-galerkin-mixed-tdgl.pdf).
 
-The authors introduce \(\boldsymbol\sigma=\nabla\times\mathbf A\) and use a de Rham-compatible triple: Lagrange \(H^1\) elements for \(\psi\), first-family Nédélec \(H(\mathrm{curl})\) elements for \(\boldsymbol\sigma\), and Raviart–Thomas \(H(\mathrm{div})\) elements for \(\mathbf A\). A linearized backward-Euler scheme is proved unconditionally stable with optimal error estimates in two and three dimensions.
+The authors introduce $\boldsymbol\sigma=\nabla\times\mathbf A$ and use a de Rham-compatible triple: Lagrange $H^1$ elements for $\psi$, first-family Nédélec $H(\mathrm{curl})$ elements for $\boldsymbol\sigma$, and Raviart–Thomas $H(\mathrm{div})$ elements for $\mathbf A$. A linearized backward-Euler scheme is proved unconditionally stable with optimal error estimates in two and three dimensions.
 
 **Relevance.** It supplies a rigorous mixed alternative, exposes magnetic flux as a primary variable, and is attractive for local current/flux conservation.
 
@@ -94,9 +94,9 @@ The authors introduce \(\boldsymbol\sigma=\nabla\times\mathbf A\) and use a de R
 
 **Citations.** B. Li and Z. Zhang, “A new approach for numerical simulation of the time-dependent Ginzburg–Landau equations,” *Journal of Computational Physics* 303, 238–250 (2015), [DOI: 10.1016/j.jcp.2015.09.049](https://doi.org/10.1016/j.jcp.2015.09.049), [arXiv](https://arxiv.org/abs/1410.3746), [local PDF](../papers/li-zhang-2014-hodge-tdgl.pdf). B. Li and Z. Zhang, “Mathematical and numerical analysis of the time-dependent Ginzburg–Landau equations in nonconvex polygons,” *Mathematics of Computation* 86, 1579–1608 (2017), [DOI: 10.1090/mcom/3177](https://doi.org/10.1090/mcom/3177), [arXiv](https://arxiv.org/abs/1410.3547), [local PDF](../papers/li-zhang-2017-nonconvex-tdgl.pdf).
 
-These papers demonstrate that the magnetic potential in a nonconvex domain need not have (H^1) regularity. Ordinary nodal-vector FEM can converge to a spurious solution. In two dimensions they use Hodge decomposition to replace the vector potential by scalar potentials and employ stable nodal elements and linearized time stepping.
+These papers demonstrate that the magnetic potential in a nonconvex domain need not have $H^1$ regularity. Ordinary nodal-vector FEM can converge to a spurious solution. In two dimensions they use Hodge decomposition to replace the vector potential by scalar potentials and employ stable nodal elements and linearized time stepping.
 
-**Relevance.** They are decisive evidence against assembling three independent nodal components of \(\mathbf A\) for arbitrary 3-D geometries.
+**Relevance.** They are decisive evidence against assembling three independent nodal components of $\mathbf A$ for arbitrary 3-D geometries.
 
 **Limitations.** The scalar Hodge reduction is inherently two-dimensional. In three dimensions the Hodge component is vector-valued; in multiply connected domains nontrivial harmonic fields appear and the simplified system is no longer equivalent unless cycle constraints are supplied. The papers motivate Nédélec/mixed elements rather than provide the final 3-D algorithm.
 
@@ -116,7 +116,7 @@ Chen–Dai combine continuous finite elements, semi-implicit evolution, and dual
 
 **Relevance.** They support residual adaptivity and second-order semi-implicit time integration after a conservative backward-Euler baseline is validated.
 
-**Limitations.** Neither delivers a complete 3-D (H(\mathrm{curl})) exterior-Maxwell implementation, and the 2-D estimators cannot simply be transplanted to edge elements.
+**Limitations.** Neither delivers a complete 3-D $H(\mathrm{curl})$ exterior-Maxwell implementation, and the 2-D estimators cannot simply be transplanted to edge elements.
 
 ## Three-dimensional computational TDGL
 
@@ -158,7 +158,7 @@ This COMSOL study solves coupled TDGL in a three-dimensional superconducting reg
 
 **Relevance.** This paper gives unusually direct evidence for the project's central physical constraint. Its single-domain comparison fixes the applied field on the superconducting surface and misses equatorial field enhancement, whereas the two-domain vacuum model agrees with the analytical sphere solution.
 
-**Limitations.** The formulation is implemented through general COMSOL nodal PDE variables rather than a documented Nédélec exact-sequence discretization. It uses a finite vacuum truncation and does not address multiply connected harmonic modes or FEM–BEM. Its chosen boundary representation for \(\mathbf A\) must therefore be rederived in the proposed mixed (H(\mathrm{curl})) weak form rather than copied componentwise.
+**Limitations.** The formulation is implemented through general COMSOL nodal PDE variables rather than a documented Nédélec exact-sequence discretization. It uses a finite vacuum truncation and does not address multiply connected harmonic modes or FEM–BEM. Its chosen boundary representation for $\mathbf A$ must therefore be rederived in the proposed mixed $H(\mathrm{curl})$ weak form rather than copied componentwise.
 
 ### Lara et al. (2020)
 
@@ -188,15 +188,15 @@ This work uses COMSOL/nodal finite elements in two-dimensional complex sample ge
 
 **Relevance.** It shows why unstructured meshes are attractive for experimentally fabricated shapes.
 
-**Limitations.** The formulation imposes applied magnetic data and a gauge condition on the sample boundary rather than solving a surrounding vacuum. It is 2-D and does not address (H(\mathrm{curl})) regularity or topological harmonic modes.
+**Limitations.** The formulation imposes applied magnetic data and a gauge condition on the sample boundary rather than solving a surrounding vacuum. It is 2-D and does not address $H(\mathrm{curl})$ regularity or topological harmonic modes.
 
 ## Maxwell-compatible finite elements and exterior domains
 
 ### Nédélec (1980) and Monk (2003)
 
-**Citations.** J.-C. Nédélec, “Mixed finite elements in \(\mathbb R^3\),” *Numerische Mathematik* 35, 315–341 (1980), [DOI: 10.1007/BF01396415](https://doi.org/10.1007/BF01396415). P. Monk, *Finite Element Methods for Maxwell's Equations*, Oxford University Press (2003), [publisher page](https://global.oup.com/academic/product/finite-element-methods-for-maxwells-equations-9780198508885).
+**Citations.** J.-C. Nédélec, “Mixed finite elements in $\mathbb R^3$,” *Numerische Mathematik* 35, 315–341 (1980), [DOI: 10.1007/BF01396415](https://doi.org/10.1007/BF01396415). P. Monk, *Finite Element Methods for Maxwell's Equations*, Oxford University Press (2003), [publisher page](https://global.oup.com/academic/product/finite-element-methods-for-maxwells-equations-9780198508885).
 
-Nédélec elements place tangential degrees of freedom on edges and form the compatible (H^1\to H(\mathrm{curl})\to H(\mathrm{div})\to L^2) sequence with nodal, face, and cell spaces. This structure represents curl fields, avoids spurious Maxwell modes, and provides the right continuity across material interfaces. Monk gives the comprehensive variational and approximation theory.
+Nédélec elements place tangential degrees of freedom on edges and form the compatible $H^1\to H(\mathrm{curl})\to H(\mathrm{div})\to L^2$ sequence with nodal, face, and cell spaces. This structure represents curl fields, avoids spurious Maxwell modes, and provides the right continuity across material interfaces. Monk gives the comprehensive variational and approximation theory.
 
 **Relevance.** These are the mathematical basis for custom tetrahedral edge-element assembly.
 
@@ -236,7 +236,7 @@ The method uses curl-conforming elements, a spherical Dirichlet-to-Neumann map, 
 
 **Citation.** L. Chen, R. Guo, and J. Zou, “A family of immersed finite element spaces and applications to three-dimensional H(curl) interface problems,” [arXiv:2205.14127](https://arxiv.org/abs/2205.14127), [local PDF](../papers/chen-guo-zou-2022-immersed-hcurl.pdf).
 
-The authors construct immersed (H(\mathrm{curl})) spaces on unfitted tetrahedral meshes and prove optimal approximation for Maxwell interface problems.
+The authors construct immersed $H(\mathrm{curl})$ spaces on unfitted tetrahedral meshes and prove optimal approximation for Maxwell interface problems.
 
 **Relevance.** This is a possible later route for moving inclusions or geometry sweeps without remeshing.
 
@@ -248,10 +248,10 @@ The evidence leads to the following design decisions.
 
 - **Physics baseline:** use magnetoquasistatic TDGL–Maxwell with normal conductivity and current continuity. Keep the displacement-current/full-wave Maxwell model as a documented extension, not an ambiguous optional term.
 - **Exterior field:** solve the vector potential in a surrounding vacuum region. Put applied-field data on a remote outer boundary or represent source coils/currents. Demonstrate convergence as the vacuum padding grows. Add FEM–BEM later for an exact unbounded MQS exterior.
-- **Spaces:** use complex nodal (H^1) elements for \(\psi\), Nédélec (H(\mathrm{curl})) elements for \(\mathbf A\), and nodal gauge/scalar-potential unknowns. Consider Raviart–Thomas/BDM magnetic flux or current variables when local conservation warrants a larger mixed system.
+- **Spaces:** use complex nodal $H^1$ elements for $\psi$, Nédélec $H(\mathrm{curl})$ elements for $\mathbf A$, and nodal gauge/scalar-potential unknowns. Consider Raviart–Thomas/BDM magnetic flux or current variables when local conservation warrants a larger mixed system.
 - **Gauge/topology:** enforce Coulomb gauge weakly with a multiplier and explicit nullspace treatment. Compute a cohomology/cycle basis in multiply connected domains; gauge fixing alone does not remove harmonic fields. Retain a temporal-gauge branch only as a validation path.
 - **Time:** start with fully implicit backward Euler and Newton/Picard damping. Add BDF2 or linearized Crank–Nicolson after energy, gauge, and convergence tests pass.
 - **Geometry/adaptivity:** use fitted tetrahedral meshes first, with edge orientation and exact-sequence incidence matrices treated as core infrastructure. Refine around vortex cores and penetration layers; unfitted interface elements are a later option.
-- **Proximity:** a GL-coefficient continuation into a normal metal is a near-\(T_c\), phenomenological proximity model. Quantitative low-temperature S–N proximity requires Usadel/BdG coupling and is outside the initial solver's claims.
+- **Proximity:** a GL-coefficient continuation into a normal metal is a near-$T_c$, phenomenological proximity model. Quantitative low-temperature S–N proximity requires Usadel/BdG coupling and is outside the initial solver's claims.
 
-These choices resolve the main incompatibility in the literature: efficient bulk TDGL solvers often prescribe \(\mathbf A\) or \(\mathbf B\), while rigorous 3-D Maxwell FEM papers omit superconducting dynamics. The proposed method couples the strengths of both without treating a sample-boundary applied field as a self-consistent exterior solution.
+These choices resolve the main incompatibility in the literature: efficient bulk TDGL solvers often prescribe $\mathbf A$ or $\mathbf B$, while rigorous 3-D Maxwell FEM papers omit superconducting dynamics. The proposed method couples the strengths of both without treating a sample-boundary applied field as a self-consistent exterior solution.

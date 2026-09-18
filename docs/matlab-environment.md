@@ -47,7 +47,7 @@ The script constructs a reproducible sparse symmetric matrix of size 1200 with a
 |---|---:|
 | Matrix dimension | 1200 |
 | Nonzeros | 5,480 |
-| Relative residual \(\|Ax-b\|/\|b\|\) | \(1.734\times10^{-16}\) |
+| Relative residual $\|Ax-b\|/\|b\|$ | $1.734\times10^{-16}$ |
 | Status | PASS |
 
 This verifies the basic sparse direct-solve path. It does not test the indefinite mixed saddle-point structure or large-scale iterative preconditioners required by production TDGL–Maxwell.
@@ -58,7 +58,7 @@ The script uses PDE Toolbox to:
 
 1. create a unit cube;
 2. generate a linear tetrahedral mesh with `Hmax = 0.35`;
-3. solve \(-\nabla^2u=1\) with homogeneous Dirichlet data on all faces;
+3. solve $-\nabla^2u=1$ with homogeneous Dirichlet data on all faces;
 4. assert finite values and a positive interior maximum.
 
 | Metric | Result |

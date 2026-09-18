@@ -20,7 +20,7 @@ The tested local version is MATLAB R2022b with Partial Differential Equation Too
 
 It is insufficient as the core production formulation for these reasons:
 
-1. **Maxwell conformity.** A vector represented by three nodal components is not an (H(\mathrm{curl})\)-conforming Nédélec field. It can generate spurious modes and wrong limits on reentrant/nonconvex domains where \(\mathbf A\notin H^1\).
+1. **Maxwell conformity.** A vector represented by three nodal components is not an $H(\mathrm{curl})$-conforming Nédélec field. It can generate spurious modes and wrong limits on reentrant/nonconvex domains where $\mathbf A\notin H^1$.
 2. **Mixed de Rham spaces.** The required nodal–edge–face–cell exact sequence and mixed block operators are not exposed as native PDE Toolbox trial spaces.
 3. **Multiply connected topology.** Gauge fixing, harmonic fields, cohomology bases, fluxoid sectors, and cuts require explicit mesh-topology operators.
 4. **3-D adaptivity.** The documented legacy [`adaptmesh`](https://www.mathworks.com/help/pde/ug/adaptmesh.html) workflow is two-dimensional; production 3-D vortex-core refinement and coarsening require an external/custom mesh loop.
@@ -78,7 +78,7 @@ Large meshes, transient fields, MATLAB preferences, caches, and duplicate paper 
 - Use vectorized element batches to build sparse triplets; avoid repeated sparse insertion.
 - Provide independent high-order quadrature checks for nonlinear terms.
 - Split applied and scattered potentials where this improves outer boundary data and conditioning.
-- Make complex algebra explicit. If MATLAB solver/preconditioner limitations require it, expose a real (2\times2) block representation with equivalence tests.
+- Make complex algebra explicit. If MATLAB solver/preconditioner limitations require it, expose a real $2\times2$ block representation with equivalence tests.
 
 ### Nonlinear and linear solvers
 
@@ -99,8 +99,8 @@ Large meshes, transient fields, MATLAB preferences, caches, and duplicate paper 
 
 Initial engineering targets, to be replaced by convergence evidence, are
 
-- (h\le\xi/4) in vortex-core regions, giving roughly 8 cells across a (2\xi) core diameter;
-- (h\le\lambda/4) in penetration-depth boundary layers;
+- $h\le\xi/4$ in vortex-core regions, giving roughly 8 cells across a $2\xi$ core diameter;
+- $h\le\lambda/4$ in penetration-depth boundary layers;
 - additional refinement at S–N interfaces, sharp corners, holes, terminals, and material jumps;
 - graded coarsening through remote vacuum, constrained by magnetic far-field accuracy.
 
@@ -124,17 +124,17 @@ Implement mesh import, global orientations, quadrature, P1/P2 Lagrange and first
 
 Implement curl-curl, conductivity mass, scalar electric potential, Coulomb gauge, source currents, remote boundary conditions, material transmission, and vacuum padding.
 
-**Gate:** manufactured (H(\mathrm{curl})) convergence, current conservation, gauge invariance, sphere/slab screening limits, vacuum-size convergence, and no spurious null modes.
+**Gate:** manufactured $H(\mathrm{curl})$ convergence, current conservation, gauge invariance, sphere/slab screening limits, vacuum-size convergence, and no spurious null modes.
 
 ### Phase 3 — Standalone TDGL on prescribed compatible fields
 
-Implement complex \(\psi\), covariant gradient, de Gennes conditions, nonlinear reaction, backward Euler, Newton/Picard, energy and vortex diagnostics.
+Implement complex $\psi$, covariant gradient, de Gennes conditions, nonlinear reaction, backward Euler, Newton/Picard, energy and vortex diagnostics.
 
 **Gate:** manufactured convergence, zero-field relaxation, single-vortex flux/winding, published bounded-domain comparisons, and energy decay without drive.
 
 ### Phase 4 — Monolithic coupled TDGL–MQS in vacuum
 
-Couple all Jacobian blocks, retain physical \(\varphi\), add applied-field/source splitting, restart files, and field-split preconditioning.
+Couple all Jacobian blocks, retain physical $\varphi$, add applied-field/source splitting, restart files, and field-split preconditioning.
 
 **Gate:** self-consistent Meissner screening, sphere in vacuum, vortex entry, energy/work balance, gauge-transform invariance, and mesh/time/vacuum convergence.
 
@@ -191,10 +191,10 @@ At every checkpoint: run unit and convergence tests, record MATLAB version, revi
 
 | Risk | Consequence | Mitigation |
 |---|---|---|
-| Nodal vector potential on nonsmooth geometry | spurious or wrong solution | Nédélec (H(\mathrm{curl})) production space |
+| Nodal vector potential on nonsmooth geometry | spurious or wrong solution | Nédélec $H(\mathrm{curl})$ production space |
 | Gauge/harmonic nullspaces | singular or topology-dependent solve | mixed constraint plus explicit cohomology basis |
 | Applied field on sample surface | suppressed screening/demagnetization | solve surrounding vacuum; apply data remotely or use coils |
-| Under-resolved \(\xi\) or \(\lambda\) | wrong vortex force and entry field | local refinement plus observable convergence |
+| Under-resolved $\xi$ or $\lambda$ | wrong vortex force and entry field | local refinement plus observable convergence |
 | Uncontrolled vacuum truncation | biased magnetization/self-field | padding study, then FEM–BEM |
 | Semi-implicit instability | unphysical energy increase | fully implicit baseline and energy/work gate |
 | GL proximity used outside validity | misleading S–N prediction | label regime; compare with analytic GL limit; defer microscopic model |

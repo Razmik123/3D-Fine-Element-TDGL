@@ -36,20 +36,20 @@ Check every Newton block with complex-step differentiation where analytic, or ce
 
 ### 3.1 Smooth coupled 3-D cube
 
-Choose smooth nonzero complex \(\psi(\mathbf x,t)\), vector potential \(\mathbf A(\mathbf x,t)\), scalar potential \(\varphi(\mathbf x,t)\), and gauge multiplier on the unit cube. Derive forcing, boundary data, initial data, and interface-free coefficients symbolically. Use a field with all components active and nonzero curl/divergence before gauge projection.
+Choose smooth nonzero complex $\psi(\mathbf x,t)$, vector potential $\mathbf A(\mathbf x,t)$, scalar potential $\varphi(\mathbf x,t)$, and gauge multiplier on the unit cube. Derive forcing, boundary data, initial data, and interface-free coefficients symbolically. Use a field with all components active and nonzero curl/divergence before gauge projection.
 
 Measure:
 
-- \(\|\psi-\psi_h\|_{L^2}\) and (H^1) seminorm;
-- \(\|\mathbf A-\mathbf A_h\|_{L^2}\) and (H(\mathrm{curl})) norm;
-- \(\|\varphi-\varphi_h\|_{H^1}\);
+- $\|\psi-\psi_h\|_{L^2}$ and $H^1$ seminorm;
+- $\|\mathbf A-\mathbf A_h\|_{L^2}$ and $H(\mathrm{curl})$ norm;
+- $\|\varphi-\varphi_h\|_{H^1}$;
 - current, gauge, and nonlinear residuals.
 
 For P1 Lagrange and first-order Nédélec on quasi-uniform meshes, require the theoretical first-order energy-norm behavior and the supported higher (L^2) behavior when regularity/duality permits. Rates, not a single tolerance, are decisive.
 
 ### 3.2 Discontinuous-material interface
 
-Manufacture a solution in two subdomains with jumps in \(\mu\), \(\sigma\), and GL coefficients, satisfying the intended tangential/normal interface conditions. Use both fitted planar and curved interfaces.
+Manufacture a solution in two subdomains with jumps in $\mu$, $\sigma$, and GL coefficients, satisfying the intended tangential/normal interface conditions. Use both fitted planar and curved interfaces.
 
 **Pass:** optimal expected convergence with no degradation in interface jump residual; correct weighted flux continuity.
 
@@ -67,15 +67,15 @@ Use a spatial mesh fine enough that time error dominates and a smooth forced tra
 - BDF2: expected global order 2 after consistent startup.
 - Crank–Nicolson/linearized CN: expected global order 2 in its documented stability regime.
 
-Repeat with \(\Delta t,\Delta t/2,\Delta t/4,\Delta t/8\), measuring field and observable error. Test phase-slip and vortex-entry events separately because nonsmooth event timing can reduce observed order.
+Repeat with $\Delta t,\Delta t/2,\Delta t/4,\Delta t/8$, measuring field and observable error. Test phase-slip and vortex-entry events separately because nonsmooth event timing can reduce observed order.
 
 **Pass:** fitted orders within 0.15 of theory for smooth tests; nonlinear tolerances at least one order below discretization error; rejected steps do not alter the converged trajectory beyond the estimator tolerance.
 
 ## 5. Gauge invariance and constraint tests
 
-Select a smooth \(\chi(\mathbf x,t)\) compatible with the boundary formulation and transform \(\psi,\mathbf A,\varphi\). Run from both representations.
+Select a smooth $\chi(\mathbf x,t)$ compatible with the boundary formulation and transform $\psi,\mathbf A,\varphi$. Run from both representations.
 
-Compare \(|\psi|\), \(\mathbf B\), \(\mathbf E\), currents, energy, voltage, force-like observables, and vortex lines.
+Compare $|\psi|$, $\mathbf B$, $\mathbf E$, currents, energy, voltage, force-like observables, and vortex lines.
 
 Also verify:
 
@@ -83,15 +83,15 @@ Also verify:
 - scalar and harmonic nullspaces are reported and constrained, not regularized accidentally;
 - the temporal-gauge validation branch agrees in physical observables where both gauges apply.
 
-**Pass:** physical differences scale with discretization/solver tolerance; no O(1) dependence on \(\chi\) or mesh cut.
+**Pass:** physical differences scale with discretization/solver tolerance; no O(1) dependence on $\chi$ or mesh cut.
 
 ## 6. Current conservation
 
 For closed and terminal-driven configurations, measure elementwise divergence residual, flux jumps, net boundary flux, and terminal balance:
 
-\[
+$$
 R_I=\frac{|I_++I_-|}{\max(|I_+|,|I_-|,I_{\rm scale})}.
-\]
+$$
 
 Integrate charge/current continuity over arbitrary unions of elements. Compare current computed from constitutive fields and from terminal multipliers.
 
@@ -109,9 +109,9 @@ With time-independent zero sources and compatible boundaries, the discrete free 
 
 With changing applied field or transport current, verify
 
-\[
+$$
 \Delta\mathcal G + \int \mathcal D\,dt = W_{\rm source}+\text{discretization error}.
-\]
+$$
 
 **Pass:** balance defect converges to zero with time and space refinement. Energy monotonicity is not incorrectly demanded when sources do work.
 
@@ -121,44 +121,44 @@ With changing applied field or transport current, verify
 
 For a thick planar slab in the London/small-field regime, compare the interior profile with
 
-\[
+$$
 B(x)=B_a\frac{\cosh(x/\lambda)}{\cosh(d/(2\lambda))}
-\]
+$$
 
-for a slab centered at zero with thickness (d). Use a surrounding vacuum and apply \(B_a\) remotely.
+for a slab centered at zero with thickness $d$. Use a surrounding vacuum and apply $B_a$ remotely.
 
-**Metrics:** profile (L^2/L^\infty) error, fitted penetration depth, surface current, magnetization, vacuum-padding dependence.
+**Metrics:** profile $L^2/L^\infty$ error, fitted penetration depth, surface current, magnetization, vacuum-padding dependence.
 
-**Pass:** fitted \(\lambda\) and magnetization converge to the London result; doubling vacuum padding changes target observables by less than the stated tolerance (initially 0.5%).
+**Pass:** fitted $\lambda$ and magnetization converge to the London result; doubling vacuum padding changes target observables by less than the stated tolerance (initially 0.5%).
 
 ### 8.2 Superconducting sphere in vacuum
 
-Place a sphere of radius \(R\) in a much larger vacuum domain. In the London regime compare the magnetic moment/susceptibility with the analytical spherical screening expression, commonly written in normalized form proportional to
+Place a sphere of radius $R$ in a much larger vacuum domain. In the London regime compare the magnetic moment/susceptibility with the analytical spherical screening expression, commonly written in normalized form proportional to
 
-\[
+$$
 -\frac32\left[1-3\frac{\lambda}{R}\coth\left(\frac{R}{\lambda}\right)
 +3\left(\frac{\lambda}{R}\right)^2\right],
-\]
+$$
 
-with the exact SI normalization documented in the test implementation. Test several \(\lambda/R\).
+with the exact SI normalization documented in the test implementation. Test several $\lambda/R$.
 
 **Pass:** moment, axial field, and surface-current distribution converge with mesh and vacuum radius; extrapolation to infinite padding agrees with the analytical normalization within 1% in the resolved London regime.
 
 ### 8.3 Single straight vortex
 
-Use a large cylinder or periodic transverse cell with one flux quantum. Compare radial \(|\psi(r)|\) with a high-accuracy 1-D GL boundary-value solution (and Clem approximation only as a secondary reference), and far-core field with the London (K_0(r/\lambda)) behavior.
+Use a large cylinder or periodic transverse cell with one flux quantum. Compare radial $|\psi(r)|$ with a high-accuracy 1-D GL boundary-value solution (and Clem approximation only as a secondary reference), and far-core field with the London $K_0(r/\lambda)$ behavior.
 
-**Pass:** phase winding (2\pi\); integrated flux approaches \(\Phi_0\); core and field profiles converge; vortex energy per length approaches the reference with domain-size extrapolation.
+**Pass:** phase winding $2\pi$; integrated flux approaches $\Phi_0$; core and field profiles converge; vortex energy per length approaches the reference with domain-size extrapolation.
 
 ### 8.4 Multiply connected ring/torus and fluxoid quantization
 
 Initialize several winding sectors in a superconducting ring and torus. Integrate fluxoid on multiple homologous contours and use at least two independently generated cut systems.
 
-**Pass:** fluxoid differs from (n\Phi_0) only by discretization/quadrature error; homologous contours agree; results are independent of cut choice; (n) remains fixed absent a resolved phase slip and changes by an integer when a phase slip occurs.
+**Pass:** fluxoid differs from $n\Phi_0$ only by discretization/quadrature error; homologous contours agree; results are independent of cut choice; $n$ remains fixed absent a resolved phase slip and changes by an integer when a phase slip occurs.
 
 ### 8.5 S–N proximity benchmark
 
-For a planar S–N bilayer near (T_c), compare the normal-side decay of \(\psi\) with the linearized GL exponential and enforce the chosen transparent or finite-barrier interface conditions. Separately test the no-proximity model with \(\psi\) absent in N but normal current present.
+For a planar S–N bilayer near $T_c$, compare the normal-side decay of $\psi$ with the linearized GL exponential and enforce the chosen transparent or finite-barrier interface conditions. Separately test the no-proximity model with $\psi$ absent in N but normal current present.
 
 **Pass:** fitted decay length and interface amplitude/flux match the analytic coefficients; current is continuous; the two physical models remain distinguishable in input and output metadata.
 
