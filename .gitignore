@@ -1,6 +1,8 @@
 # MATLAB transient state
 .matlab-pref/
 MathWorks/
+results/
+meshes/generated/
 *.asv
 *.autosave
 slprj/
