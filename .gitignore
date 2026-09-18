@@ -1,0 +1,18 @@
+# MATLAB transient state
+.matlab-pref/
+MathWorks/
+*.asv
+*.autosave
+slprj/
+codegen/
+
+# Local scratch and generated caches
+tmp/
+*.mexa64
+*.mexw64
+*.mexmaci64
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
