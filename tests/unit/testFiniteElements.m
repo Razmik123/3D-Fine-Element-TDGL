@@ -47,3 +47,12 @@ mesh = tdgl.geometry.boxMesh([1 1 1]);
 verifyLessThan(testCase,norm(curlCurl*G,'fro'),1e-11);
 verifyLessThan(testCase,norm(curlCurl-curlCurl.','fro'),1e-13);
 end
+
+function testFourthOrderQuadrature(testCase)
+[barycentric,weights] = tdgl.elements.tetraQuadrature(4);
+verifyEqual(testCase,sum(weights),1/6,'AbsTol',2e-15);
+verifyEqual(testCase,sum(weights.*barycentric(:,1).^4),1/210, ...
+    'AbsTol',2e-15);
+verifyEqual(testCase,sum(weights.*barycentric(:,1).^2.* ...
+    barycentric(:,2).^2),1/1260,'AbsTol',2e-15);
+end
