@@ -88,6 +88,16 @@ verifyEqual(testCase,fields.muInv(regionIds == 2), ...
     0.25*ones(nnz(regionIds == 2),1));
 verifyTrue(testCase,all(fields.glActive(regionIds == 1)));
 verifyFalse(testCase,any(fields.glActive(regionIds == 2)));
+verifyEqual(testCase,fields.K(regionIds == 2), ...
+    zeros(nnz(regionIds == 2),1));
+end
+
+function testTimeDependentTerminalExcitation(testCase)
+terminal = tdgl.problem.terminal("source","xmin","current", ...
+    @(time,state) time*mean(abs(state.orderParameter)));
+state = struct('orderParameter',[1;0.5]);
+evaluated = tdgl.problem.evaluateTerminals(terminal,0.4,state);
+verifyEqual(testCase,evaluated.excitation,0.3,'AbsTol',2e-15);
 end
 
 function experiment = baseExperiment

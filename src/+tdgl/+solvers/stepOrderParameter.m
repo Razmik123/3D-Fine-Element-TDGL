@@ -12,6 +12,7 @@ arguments
     options.InitialGuess = []
     options.FixedNodeIds = []
     options.FixedValues = []
+    options.ActiveCellMask = []
     options.RelativeTolerance (1,1) double {mustBePositive} = 1e-10
     options.AbsoluteTolerance (1,1) double {mustBePositive} = 1e-12
     options.MaximumIterations (1,1) double {mustBeInteger,mustBePositive} = 25
@@ -43,24 +44,40 @@ if numel(phi) ~= nNodes
 end
 
 dt = options.TimeStep;
-[massU,~] = tdgl.assembly.p1MassStiffness(mesh,model.u,0);
-[massA,~] = tdgl.assembly.p1MassStiffness(mesh,model.a,0);
-covariant = tdgl.assembly.covariantP1(mesh,model.edgePotential,model.K);
+activeCells = activeCellMask(options.ActiveCellMask,size(mesh.cells,1));
+if any(activeCells)
+    activeNodes = unique(double(mesh.cells(activeCells,:)));
+else
+    step = emptyDomainStep(nNodes);
+    return;
+end
+inactiveNodes = setdiff((1:nNodes).',activeNodes);
+u = tdgl.assembly.cellCoefficient(model.u,size(mesh.cells,1),'u').*activeCells;
+a = tdgl.assembly.cellCoefficient(model.a,size(mesh.cells,1),'a').*activeCells;
+b = tdgl.assembly.cellCoefficient(model.b,size(mesh.cells,1),'b').*activeCells;
+K = tdgl.assembly.cellCoefficient(model.K,size(mesh.cells,1),'K').*activeCells;
+[massU,~] = tdgl.assembly.p1MassStiffness(mesh,u,0);
+[massA,~] = tdgl.assembly.p1MassStiffness(mesh,a,0);
+covariant = tdgl.assembly.covariantP1(mesh,model.edgePotential,K);
 linearMatrix = massU/dt + covariant - massA;
+previous(inactiveNodes) = 0;
 transportedPrevious = exp(-1i*dt*phi).*previous;
 rightHandSide = massU*transportedPrevious/dt;
 
-fixedNodes = unique(double(options.FixedNodeIds(:)));
+fixedNodes = double(options.FixedNodeIds(:));
 if isempty(fixedNodes)
     fixedValues = complex(zeros(0,1));
 else
     fixedValues = options.FixedValues(:);
-    if numel(fixedNodes) ~= numel(fixedValues)
+    if numel(fixedNodes) ~= numel(fixedValues) || ...
+            numel(unique(fixedNodes)) ~= numel(fixedNodes) || ...
+            any(~ismember(fixedNodes,activeNodes))
         error('tdgl:solvers:InvalidOrderParameterBoundary', ...
-            'FixedNodeIds and FixedValues must have equal length.');
+            ['Fixed psi nodes must be unique nodes in the active GL domain ', ...
+             'and match FixedValues.']);
     end
 end
-freeNodes = setdiff((1:nNodes).',fixedNodes);
+freeNodes = setdiff(activeNodes,fixedNodes);
 realFree = [freeNodes; nNodes+freeNodes];
 
 if isempty(options.InitialGuess)
@@ -72,13 +89,14 @@ else
             'InitialGuess must contain one value per node.');
     end
 end
+psi(inactiveNodes) = 0;
 psi(fixedNodes) = fixedValues;
 
 converged = false;
 history = zeros(options.MaximumIterations,2);
 for iteration = 1:options.MaximumIterations
     [nonlinear,jacobianNonlinear] = ...
-        tdgl.assembly.nonlinearOrderParameter(mesh,psi,model.b);
+        tdgl.assembly.nonlinearOrderParameter(mesh,psi,b);
     complexResidual = linearMatrix*psi+nonlinear-rightHandSide;
     residual = [real(complexResidual);imag(complexResidual)];
     residualNorm = norm(residual(realFree));
@@ -101,8 +119,9 @@ for iteration = 1:options.MaximumIterations
     while damping >= options.MinimumDamping
         candidate = psi+damping*(increment(1:nNodes)+1i*increment(nNodes+1:end));
         candidate(fixedNodes) = fixedValues;
+        candidate(inactiveNodes) = 0;
         candidateNonlinear = tdgl.assembly.nonlinearOrderParameter( ...
-            mesh,candidate,model.b);
+            mesh,candidate,b);
         candidateResidual = linearMatrix*candidate+candidateNonlinear-rightHandSide;
         candidateNorm = norm([real(candidateResidual(freeNodes)); ...
                               imag(candidateResidual(freeNodes))]);
@@ -133,4 +152,26 @@ step.residualNorm = residualNorm;
 step.tolerance = tolerance;
 step.history = history(1:iteration,:);
 step.converged = converged;
+end
+
+function mask = activeCellMask(raw,nCells)
+if isempty(raw)
+    mask = true(nCells,1);
+else
+    mask = logical(raw(:));
+    if numel(mask) ~= nCells
+        error('tdgl:solvers:ActiveCellMaskSizeMismatch', ...
+            'ActiveCellMask must contain one value per tetrahedron.');
+    end
+end
+end
+
+function step = emptyDomainStep(nNodes)
+step = struct();
+step.orderParameter = complex(zeros(nNodes,1));
+step.iterations = 0;
+step.residualNorm = 0;
+step.tolerance = 0;
+step.history = zeros(0,2);
+step.converged = true;
 end

@@ -30,6 +30,9 @@ Implemented:
 - transient MQS edge/nodal solve with superconducting screening, Ohmic current,
   current continuity, and a mixed Coulomb constraint;
 - self-consistent staggered TDGL–MQS time stepping with convergence diagnostics;
+- equipotential current, voltage, ground, and floating-terminal constraints,
+  including prescribed total rather than pointwise current;
+- restricted GL-active cell sets for the no-proximity material model;
 - fixed-step time-series integration and observer recording;
 - gauge-invariant path voltage, terminal electrochemical voltage, and edge
   electric-field extraction;
@@ -38,8 +41,8 @@ Implemented:
 Not yet implemented:
 
 - monolithic Newton coupling and scalable block preconditioning;
-- integral transport-current terminal constraints;
-- no-proximity restricted GL subdomains and assembled interface barrier terms;
+- assembled finite-barrier/de Gennes interface terms beyond the natural
+  zero-flux no-proximity boundary;
 - scalable cohomology basis for large multiply connected meshes;
 - adaptive 3-D remeshing and FEM–BEM exterior coupling.
 

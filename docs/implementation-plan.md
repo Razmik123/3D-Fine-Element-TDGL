@@ -15,7 +15,9 @@ The first end-to-end physics target is magnetoquasistatic TDGL coupled to a surr
 Implementation status (2026-09-19): Phases 1 and 3 foundations are operational.
 Phase 2 has a mixed magnetostatic solver and a transient MQS reference block.
 Phase 4 has a self-consistent staggered reference coupling; its monolithic
-Newton and scalable preconditioner are still pending.
+Newton and scalable preconditioner are still pending. Integral-current,
+equipotential terminals and a restricted no-proximity GL subdomain are now
+available as reference implementations for Phase 5.
 
 ## 2. PDE Toolbox suitability assessment
 
@@ -205,9 +207,8 @@ At every checkpoint: run unit and convergence tests, record MATLAB version, revi
 
 ## 8. Immediate next implementation task
 
-Implement terminal constraints and the no-proximity restricted GL domain before
-claiming general S–N transport. In parallel, formulate the complete monolithic
-residual/Jacobian using the verified staggered blocks as independent references.
-The next acceptance checkpoint must include imposed total-current conservation,
-terminal voltage consistency, a manufactured coupled solution, and an
-energy/work balance under drive.
+Implement finite de Gennes/barrier interface terms and formulate the complete
+monolithic residual/Jacobian using the verified staggered blocks as independent
+references. The next acceptance checkpoint must include a manufactured coupled
+solution, terminal-voltage path consistency, and an energy/work balance under
+drive.

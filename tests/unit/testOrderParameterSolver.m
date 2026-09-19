@@ -69,6 +69,37 @@ verifyGreaterThan(testCase,result.observations.meanMagnitude(end),0.4);
 verifyEqual(testCase,numel(result.stepDiagnostics),4);
 end
 
+function testNoProximityRestrictsOrderParameterToActiveCells(testCase)
+mesh = tdgl.geometry.boxMesh([3 1 1]);
+cellCenters = zeros(size(mesh.cells,1),1);
+for cellId = 1:size(mesh.cells,1)
+    cellCenters(cellId) = mean(mesh.nodes(double(mesh.cells(cellId,:)),1));
+end
+activeCells = cellCenters < 0.5;
+activeNodes = unique(double(mesh.cells(activeCells,:)));
+inactiveOnlyNodes = setdiff((1:size(mesh.nodes,1)).',activeNodes);
+model = referenceModel(mesh);
+previous = ones(size(mesh.nodes,1),1);
+
+step = tdgl.solvers.stepOrderParameter( ...
+    mesh,previous,model,'TimeStep',0.05,'ActiveCellMask',activeCells);
+
+verifyEqual(testCase,step.orderParameter(inactiveOnlyNodes), ...
+    zeros(numel(inactiveOnlyNodes),1),'AbsTol',2e-14);
+verifyGreaterThan(testCase,min(abs(step.orderParameter(activeNodes))),0.9);
+end
+
+function testEmptyGLDomainReturnsZeroState(testCase)
+mesh = tdgl.geometry.boxMesh([1 1 1]);
+model = referenceModel(mesh);
+step = tdgl.solvers.stepOrderParameter( ...
+    mesh,ones(size(mesh.nodes,1),1),model, ...
+    'TimeStep',0.1,'ActiveCellMask',false(size(mesh.cells,1),1));
+verifyEqual(testCase,step.orderParameter, ...
+    zeros(size(mesh.nodes,1),1),'AbsTol',0);
+verifyEqual(testCase,step.iterations,0);
+end
+
 function model = referenceModel(mesh)
 model = struct();
 model.u = 1;

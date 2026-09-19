@@ -48,6 +48,10 @@ while time < options.StopTime
     dt = min(options.TimeStep,options.StopTime-time);
     nextTime = time+dt;
     model = evaluateModel(modelProvider,nextTime,state);
+    if isfield(model,'terminals')
+        model.terminals = tdgl.problem.evaluateTerminals( ...
+            model.terminals,nextTime,state);
+    end
     boundary = evaluateBoundary(boundaryProvider,nextTime,state,model);
     previous = state;
     stepOptions = namedOptions(options.StepOptions);

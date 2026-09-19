@@ -21,9 +21,11 @@ for regionId = unique(double(mesh.regionIds(:))).'
     fields.conductivity(cells) = material.conductivity;
     fields.muInv(cells) = 1/material.relativePermeability;
     fields.glActive(cells) = material.glActive;
-    fields.a(cells) = material.a;
-    fields.b(cells) = material.b;
-    fields.K(cells) = material.K;
-    fields.u(cells) = material.u;
+    if material.glActive
+        fields.a(cells) = material.a;
+        fields.b(cells) = material.b;
+        fields.K(cells) = material.K;
+        fields.u(cells) = material.u;
+    end
 end
 end

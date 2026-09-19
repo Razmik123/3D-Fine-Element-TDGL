@@ -179,6 +179,12 @@ drain  = tdgl.problem.terminal("drain","right","current",-I);
 
 Current excitation is an integral surface constraint. A uniform pointwise current density will only be used when the experiment explicitly requests it.
 
+The compiled terminal node sets are consumed by
+`tdgl.boundary.scalarPotentialSpace`. It reduces each metallic electrode to one
+equipotential scalar unknown and places its prescribed total current in the
+aggregated weak continuity equation. Ground/voltage terminals enter the fixed
+potential offset; a floating terminal has zero total current.
+
 An S–N or S–vacuum interface touching a GL-active material requires an explicit `tdgl.problem.interfaceModel`; the compiler does not silently choose transparent versus de Gennes coupling.
 
 ## 7. Voltage and time-dependent measurements

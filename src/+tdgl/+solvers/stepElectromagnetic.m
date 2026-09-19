@@ -16,6 +16,7 @@ arguments
     options.Boundary struct
     options.FixedPhiNodeIds = []
     options.FixedPhiValues = []
+    options.Terminals struct = struct([])
 end
 
 nEdges = double(mesh.topology.nEdges);
@@ -51,15 +52,14 @@ end
 freeEdges = setdiff((1:nEdges).',fixedEdges);
 
 conductingCells = conductivity > 0;
-components = tdgl.topology.conductingComponents(mesh,conductingCells);
-if isempty(components)
-    conductingNodes = zeros(0,1);
-else
-    conductingNodes = unique(vertcat(components{:}));
+terminals = options.Terminals;
+if isempty(terminals) && isfield(model,'terminals')
+    terminals = model.terminals;
 end
-[fixedPhiNodes,fixedPhiValues] = normalizedScalarBoundary( ...
-    options.FixedPhiNodeIds,options.FixedPhiValues,components,nNodes);
-freePhiNodes = setdiff(conductingNodes,fixedPhiNodes);
+phiSpace = tdgl.boundary.scalarPotentialSpace( ...
+    mesh,conductingCells,terminals, ...
+    'FixedNodeIds',options.FixedPhiNodeIds, ...
+    'FixedValues',options.FixedPhiValues);
 
 boundaryNodes = unique(double(mesh.topology.faces( ...
     double(mesh.topology.boundaryFaceIds),:)));
@@ -68,16 +68,14 @@ gaugeNodes = setdiff((1:nNodes).',boundaryNodes);
 Haa = conductivityMass/dt+curlCurl+densityMass;
 baseRightHandSide = conductivityMass*previousEdgePotential/dt + ...
     phaseLoad+externalLoad;
-GfreePhi = G(:,freePhiNodes);
-GfixedPhi = G(:,fixedPhiNodes);
+GfreePhi = G*phiSpace.basis;
+fixedPhiGradient = G*phiSpace.offset;
 Ggauge = G(:,gaugeNodes);
 gaugeCoupling = gaugeMass*Ggauge;
 
 rhsA = baseRightHandSide(freeEdges) - ...
     Haa(freeEdges,fixedEdges)*fixedEdgeValues;
-if ~isempty(fixedPhiNodes)
-    rhsA = rhsA-conductivityMass(freeEdges,:)*GfixedPhi*fixedPhiValues;
-end
+rhsA = rhsA-conductivityMass(freeEdges,:)*fixedPhiGradient;
 
 Aphi = conductivityMass(freeEdges,:)*GfreePhi;
 Ap = gaugeCoupling(freeEdges,:);
@@ -86,15 +84,14 @@ currentOperator = conductivityMass/dt+densityMass;
 phiA = GfreePhi.'*currentOperator(:,freeEdges);
 phiPhi = GfreePhi.'*conductivityMass*GfreePhi;
 rhsPhi = GfreePhi.'*baseRightHandSide - ...
-    GfreePhi.'*currentOperator(:,fixedEdges)*fixedEdgeValues;
-if ~isempty(fixedPhiNodes)
-    rhsPhi = rhsPhi-GfreePhi.'*conductivityMass*GfixedPhi*fixedPhiValues;
-end
+    GfreePhi.'*currentOperator(:,fixedEdges)*fixedEdgeValues - ...
+    GfreePhi.'*conductivityMass*fixedPhiGradient - ...
+    phiSpace.targetDivergence;
 
 pA = Ggauge.'*gaugeMass(:,freeEdges);
 rhsP = -Ggauge.'*gaugeMass(:,fixedEdges)*fixedEdgeValues;
 
-nPhi = numel(freePhiNodes);
+nPhi = size(phiSpace.basis,2);
 nP = numel(gaugeNodes);
 systemMatrix = [ ...
     Haa(freeEdges,freeEdges), Aphi, Ap; ...
@@ -107,9 +104,8 @@ edgePotential = zeros(nEdges,1);
 edgePotential(fixedEdges) = fixedEdgeValues;
 edgePotential(freeEdges) = unknown(1:numel(freeEdges));
 offset = numel(freeEdges);
-scalarPotential = zeros(nNodes,1);
-scalarPotential(fixedPhiNodes) = fixedPhiValues;
-scalarPotential(freePhiNodes) = unknown(offset+(1:nPhi));
+scalarPotential = phiSpace.offset + ...
+    phiSpace.basis*unknown(offset+(1:nPhi));
 offset = offset+nPhi;
 gaugeMultiplier = zeros(nNodes,1);
 gaugeMultiplier(gaugeNodes) = unknown(offset+(1:nP));
@@ -118,7 +114,7 @@ normalCurrent = -conductivityMass * ( ...
     (edgePotential-previousEdgePotential)/dt+G*scalarPotential);
 supercurrent = phaseLoad-densityMass*edgePotential;
 totalCurrent = supercurrent+normalCurrent+externalLoad;
-currentContinuity = G(:,freePhiNodes).'*totalCurrent;
+currentContinuity = GfreePhi.'*totalCurrent-phiSpace.targetDivergence;
 gaugeResidual = Ggauge.'*gaugeMass*edgePotential;
 linearResidual = systemMatrix*unknown-rightHandSide;
 
@@ -140,8 +136,13 @@ step.diagnostics = struct( ...
     'nFreeEdges',numel(freeEdges), ...
     'nScalarPotentialDofs',nPhi, ...
     'nGaugeDofs',nP);
-step.phiReaction = G(:,fixedPhiNodes).'*totalCurrent;
-step.fixedPhiNodeIds = fixedPhiNodes;
+step.phiReaction = G(:,phiSpace.fixedNodeIds).'*totalCurrent;
+step.fixedPhiNodeIds = phiSpace.fixedNodeIds;
+step.terminal = struct( ...
+    'names',phiSpace.terminal.names, ...
+    'modes',phiSpace.terminal.modes, ...
+    'current',phiSpace.terminal.tests.'*totalCurrent, ...
+    'reference',phiSpace.terminal.reference);
 end
 
 function [edgeIds,values] = normalizedBoundary(boundary,nEdges)
@@ -155,41 +156,4 @@ if numel(rawIds) ~= numel(rawValues) || ...
 end
 [edgeIds,order] = sort(rawIds);
 values = rawValues(order);
-end
-
-function [fixedNodes,fixedValues] = normalizedScalarBoundary( ...
-        rawNodes,rawValues,components,nNodes)
-rawNodes = double(rawNodes(:));
-rawValues = rawValues(:);
-if isempty(components)
-    if ~isempty(rawNodes)
-        error('tdgl:solvers:PhiWithoutConductor', ...
-            'Scalar-potential constraints require a conducting region.');
-    end
-    fixedNodes = zeros(0,1);
-    fixedValues = zeros(0,1);
-    return;
-end
-conductingNodes = unique(vertcat(components{:}));
-if numel(rawNodes) ~= numel(rawValues) || ...
-        numel(unique(rawNodes)) ~= numel(rawNodes) || ...
-        any(rawNodes < 1) || any(rawNodes > nNodes) || ...
-        any(rawNodes ~= fix(rawNodes)) || ...
-        ~all(ismember(rawNodes,conductingNodes))
-    error('tdgl:solvers:InvalidScalarPotentialBoundary', ...
-        ['Fixed phi node IDs must be unique conducting-node indices ', ...
-         'and match FixedPhiValues.']);
-end
-
-fixedNodes = rawNodes;
-fixedValues = rawValues;
-for componentId = 1:numel(components)
-    component = components{componentId};
-    if isempty(intersect(component,fixedNodes))
-        fixedNodes(end+1,1) = component(1); %#ok<AGROW>
-        fixedValues(end+1,1) = 0; %#ok<AGROW>
-    end
-end
-[fixedNodes,order] = sort(fixedNodes);
-fixedValues = fixedValues(order);
 end

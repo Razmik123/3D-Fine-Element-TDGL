@@ -15,6 +15,8 @@ arguments
     options.FixedPsiValues = []
     options.FixedPhiNodeIds = []
     options.FixedPhiValues = []
+    options.Terminals struct = struct([])
+    options.ActiveCellMask = []
     options.InitialGuess struct = struct()
     options.RelativeTolerance (1,1) double {mustBePositive} = 1e-8
     options.AbsoluteTolerance (1,1) double {mustBePositive} = 1e-10
@@ -38,8 +40,12 @@ orderStep = struct();
 electromagneticStep = struct();
 
 for iteration = 1:options.MaximumIterations
+    activeCells = coupledActiveCells(model,options.ActiveCellMask, ...
+        size(mesh.cells,1));
+    activeK = tdgl.assembly.cellCoefficient( ...
+        model.K,size(mesh.cells,1),'K').*activeCells;
     orderModel = struct( ...
-        'u',model.u,'a',model.a,'b',model.b,'K',model.K, ...
+        'u',model.u,'a',model.a,'b',model.b,'K',activeK, ...
         'edgePotential',iterate.edgePotential, ...
         'scalarPotential',iterate.scalarPotential);
     orderOptions = namedOptions(options.OrderStepOptions);
@@ -48,14 +54,18 @@ for iteration = 1:options.MaximumIterations
         'TimeStep',options.TimeStep, ...
         'InitialGuess',iterate.orderParameter, ...
         'FixedNodeIds',options.FixedPsiNodeIds, ...
-        'FixedValues',options.FixedPsiValues,orderOptions{:});
+        'FixedValues',options.FixedPsiValues, ...
+        'ActiveCellMask',activeCells,orderOptions{:});
     candidatePsi = orderStep.orderParameter;
 
+    electromagneticModel = model;
+    electromagneticModel.K = activeK;
     electromagneticStep = tdgl.solvers.stepElectromagnetic( ...
-        mesh,previous.edgePotential,candidatePsi,model, ...
+        mesh,previous.edgePotential,candidatePsi,electromagneticModel, ...
         'TimeStep',options.TimeStep,'Boundary',options.Boundary, ...
         'FixedPhiNodeIds',options.FixedPhiNodeIds, ...
-        'FixedPhiValues',options.FixedPhiValues);
+        'FixedPhiValues',options.FixedPhiValues, ...
+        'Terminals',options.Terminals);
     candidateA = electromagneticStep.edgePotential;
     candidatePhi = electromagneticStep.scalarPotential;
 
@@ -89,6 +99,7 @@ step.edgeElectricField = tdgl.post.edgeElectricField( ...
     mesh,previous.edgePotential,iterate.edgePotential, ...
     iterate.scalarPotential,options.TimeStep);
 step.weakCurrents = electromagneticStep.weakCurrents;
+step.terminal = electromagneticStep.terminal;
 step.diagnostics = struct( ...
     'converged',converged, ...
     'iterations',iteration, ...
@@ -133,5 +144,20 @@ pairs = cell(1,2*numel(names));
 for index = 1:numel(names)
     pairs{2*index-1} = names{index};
     pairs{2*index} = options.(names{index});
+end
+end
+
+function mask = coupledActiveCells(model,optionMask,nCells)
+if ~isempty(optionMask)
+    mask = logical(optionMask(:));
+elseif isfield(model,'glActive')
+    mask = logical(model.glActive(:));
+else
+    mask = true(nCells,1);
+end
+if isscalar(mask), mask = repmat(mask,nCells,1); end
+if numel(mask) ~= nCells
+    error('tdgl:solvers:ActiveCellMaskSizeMismatch', ...
+        'The coupled GL-active mask must contain one value per tetrahedron.');
 end
 end

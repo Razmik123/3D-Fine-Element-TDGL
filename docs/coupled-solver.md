@@ -68,6 +68,32 @@ $$
 Optional under-relaxation affects intermediate iterates only; the returned
 state is an unrelaxed, boundary-consistent subproblem solution.
 
+### Electrical terminals
+
+`tdgl.boundary.scalarPotentialSpace` performs a nodal coordinate reduction.
+Every current or floating electrode has one scalar-potential degree of freedom,
+so it is equipotential without prescribing its unknown voltage. For a current
+terminal, the aggregated continuity row enforces
+
+$$
+\int_{\Gamma_I}\mathbf J\cdot\mathbf n\,dS=I.
+$$
+
+The pointwise current profile is therefore an output of the solve. Voltage and
+ground terminals are strong equipotential data. One current terminal may serve
+as the additive potential reference; its current follows from component-wise
+balance. Prescribed currents are checked separately on every disconnected
+conducting component.
+
+### No-proximity domains
+
+An `ActiveCellMask`, or cellwise `model.glActive`, restricts every TDGL mass,
+reaction, covariant-gradient, nonlinear, and superconducting-current term to
+the selected fitted submesh. Nodes belonging exclusively to inactive cells are
+held at zero. This implements the no-proximity baseline with its natural
+zero-normal-covariant-flux interface. A finite de Gennes extrapolation length
+still requires the planned interface surface term.
+
 ## State and model contract
 
 Create a state with:
@@ -106,8 +132,6 @@ state, which supports:
 
 The following are not silently approximated:
 
-- integral transport-current terminal multipliers;
-- a restricted GL submesh for the no-proximity S–N model;
 - de Gennes and finite-barrier interface terms in the assembled residual;
 - harmonic/cohomology constraints for multiply connected production meshes;
 - monolithic Newton coupling and scalable block preconditioning;
