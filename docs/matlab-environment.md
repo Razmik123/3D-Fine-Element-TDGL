@@ -26,8 +26,10 @@ These are the licenses directly relevant to the proposed workflow. A license tes
 | GPUs visible to MATLAB | 1 |
 | GPU | NVIDIA GeForce RTX 3060 Laptop GPU |
 | CUDA compute capability | 8.6 |
+| GPU physical memory | 6,441,926,656 bytes (approximately 6.0 GiB) |
+| Double precision | Supported |
 
-The operating-system query for the precise CPU model was denied by host permissions, so no model name is claimed. The MATLAB-reported core availability is sufficient for planning. GPU visibility does not imply that sparse complex edge-element assembly or factorization will benefit; GPU kernels should be adopted only after profiling representative block operations.
+The operating-system query for the precise CPU model was denied by host permissions, so no model name is claimed. The MATLAB-reported core availability is sufficient for planning. An additional implementation-stage test transferred a sparse positive-definite matrix to the GPU and verified both sparse backslash and GPU PCG. Sparse backslash achieved a CPU-checked residual of $1.65\times10^{-13}$; PCG reached a relative residual of $7.71\times10^{-9}$ in 36 iterations. These confirm the execution path, not a speedup for every TDGL block.
 
 ## Batch command
 
@@ -99,4 +101,4 @@ ALL_TESTS=PASS
 
 ## Environment recommendation
 
-Keep R2022b as the reproducibility baseline until the element/topology unit tests exist. Before production implementation, also test the chosen external tetrahedral mesher, confirm Parallel Computing Toolbox worker startup, measure sparse complex/real-block memory, and establish whether the target workstation or cluster has a supported iterative/preconditioning path. Do not make the production architecture depend on GPU execution.
+Keep R2022b as the reproducibility baseline. Use the explicit execution policy described in [`compute-backends.md`](compute-backends.md): CPU for small tests, GPU when a representative complete solve is faster and fits conservatively in device memory, and automatic mode for portable runs. Numerical correctness must never depend on GPU availability.

@@ -17,6 +17,7 @@ arguments
     options.FixedPhiValues = []
     options.Terminals struct = struct([])
     options.ActiveCellMask = []
+    options.Execution = []
     options.InitialGuess struct = struct()
     options.RelativeTolerance (1,1) double {mustBePositive} = 1e-8
     options.AbsoluteTolerance (1,1) double {mustBePositive} = 1e-10
@@ -55,7 +56,8 @@ for iteration = 1:options.MaximumIterations
         'InitialGuess',iterate.orderParameter, ...
         'FixedNodeIds',options.FixedPsiNodeIds, ...
         'FixedValues',options.FixedPsiValues, ...
-        'ActiveCellMask',activeCells,orderOptions{:});
+        'ActiveCellMask',activeCells, ...
+        'Execution',options.Execution,orderOptions{:});
     candidatePsi = orderStep.orderParameter;
 
     electromagneticModel = model;
@@ -65,7 +67,8 @@ for iteration = 1:options.MaximumIterations
         'TimeStep',options.TimeStep,'Boundary',options.Boundary, ...
         'FixedPhiNodeIds',options.FixedPhiNodeIds, ...
         'FixedPhiValues',options.FixedPhiValues, ...
-        'Terminals',options.Terminals);
+        'Terminals',options.Terminals, ...
+        'Execution',options.Execution);
     candidateA = electromagneticStep.edgePotential;
     candidatePhi = electromagneticStep.scalarPotential;
 

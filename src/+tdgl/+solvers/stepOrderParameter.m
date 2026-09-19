@@ -13,6 +13,7 @@ arguments
     options.FixedNodeIds = []
     options.FixedValues = []
     options.ActiveCellMask = []
+    options.Execution = []
     options.RelativeTolerance (1,1) double {mustBePositive} = 1e-10
     options.AbsoluteTolerance (1,1) double {mustBePositive} = 1e-12
     options.MaximumIterations (1,1) double {mustBeInteger,mustBePositive} = 25
@@ -94,6 +95,7 @@ psi(fixedNodes) = fixedValues;
 
 converged = false;
 history = zeros(options.MaximumIterations,2);
+linearSolve = struct();
 for iteration = 1:options.MaximumIterations
     [nonlinear,jacobianNonlinear] = ...
         tdgl.assembly.nonlinearOrderParameter(mesh,psi,b);
@@ -112,7 +114,8 @@ for iteration = 1:options.MaximumIterations
                   imag(linearMatrix), real(linearMatrix)];
     jacobian = realLinear+jacobianNonlinear;
     increment = zeros(2*nNodes,1);
-    increment(realFree) = -jacobian(realFree,realFree)\residual(realFree);
+    [increment(realFree),linearSolve] = tdgl.compute.solveLinear( ...
+        jacobian(realFree,realFree),-residual(realFree),options.Execution);
 
     damping = 1;
     accepted = false;
@@ -152,6 +155,7 @@ step.residualNorm = residualNorm;
 step.tolerance = tolerance;
 step.history = history(1:iteration,:);
 step.converged = converged;
+step.linearSolve = linearSolve;
 end
 
 function mask = activeCellMask(raw,nCells)
@@ -174,4 +178,5 @@ step.residualNorm = 0;
 step.tolerance = 0;
 step.history = zeros(0,2);
 step.converged = true;
+step.linearSolve = struct();
 end

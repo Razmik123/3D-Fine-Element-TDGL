@@ -1,4 +1,4 @@
-function solution = solveMagnetostatic(mesh, model)
+function solution = solveMagnetostatic(mesh, model, options)
 %SOLVEMAGNETOSTATIC Solve a mixed edge-element magnetostatic problem.
 %   This verified foundation solves
 %       curl(muInv curl(A)) = J
@@ -14,6 +14,7 @@ function solution = solveMagnetostatic(mesh, model)
 arguments
     mesh struct
     model struct
+    options.Execution = []
 end
 
 if ~isfield(model,'boundary')
@@ -61,14 +62,16 @@ constraintRightHandSide = -gaugeCoupling(fixedEdges,:).'*fixedValues;
 
 if isempty(interiorNodes)
     systemMatrix = curlCurl(freeEdges,freeEdges);
-    reducedSolution = systemMatrix \ rightHandSide;
+    [reducedSolution,linearSolve] = tdgl.compute.solveLinear( ...
+        systemMatrix,rightHandSide,options.Execution);
     gaugeMultiplier = zeros(size(mesh.nodes,1),1);
 else
     coupling = gaugeCoupling(freeEdges,:);
     systemMatrix = [curlCurl(freeEdges,freeEdges), coupling; ...
                     coupling.', sparse(numel(interiorNodes),numel(interiorNodes))];
     completeRightHandSide = [rightHandSide; constraintRightHandSide];
-    reducedSolution = systemMatrix \ completeRightHandSide;
+    [reducedSolution,linearSolve] = tdgl.compute.solveLinear( ...
+        systemMatrix,completeRightHandSide,options.Execution);
     gaugeMultiplier = zeros(size(mesh.nodes,1),1);
     gaugeMultiplier(interiorNodes) = reducedSolution(numel(freeEdges)+1:end);
     reducedSolution = reducedSolution(1:numel(freeEdges));
@@ -90,6 +93,7 @@ solution.cellMagneticFluxDensity = ...
 solution.diagnostics = struct( ...
     'freeResidual',freeResidual, ...
     'gaugeResidual',gaugeResidual, ...
+    'linearSolve',linearSolve, ...
     'nFreeEdges',numel(freeEdges), ...
     'nGaugeDofs',numel(interiorNodes));
 end
