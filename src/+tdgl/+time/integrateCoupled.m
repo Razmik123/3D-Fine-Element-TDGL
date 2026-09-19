@@ -15,6 +15,10 @@ arguments
     options.StopTime (1,1) double {mustBePositive}
     options.TimeStep (1,1) double {mustBePositive}
     options.StoreEvery (1,1) double {mustBeInteger,mustBePositive} = 1
+    options.StoreHistory (1,1) logical = true
+    options.Writer = []
+    options.InitialStepIndex (1,1) double {mustBeInteger,mustBeNonnegative} = 0
+    options.WriteInitialSnapshot (1,1) logical = true
     options.Observers struct = struct([])
     options.StepOptions struct = struct()
 end
@@ -29,11 +33,18 @@ state = tdgl.state.create(mesh,initialState.orderParameter, ...
 nNodes = size(mesh.nodes,1);
 nEdges = double(mesh.topology.nEdges);
 estimatedSteps = ceil((options.StopTime-options.StartTime)/options.TimeStep);
-nStores = floor(estimatedSteps/options.StoreEvery)+2;
-storedPsi = complex(zeros(nNodes,nStores));
-storedA = zeros(nEdges,nStores);
-storedPhi = zeros(nNodes,nStores);
-storedTimes = zeros(1,nStores);
+if options.StoreHistory
+    nStores = floor(estimatedSteps/options.StoreEvery)+2;
+    storedPsi = complex(zeros(nNodes,nStores));
+    storedA = zeros(nEdges,nStores);
+    storedPhi = zeros(nNodes,nStores);
+    storedTimes = zeros(1,nStores);
+else
+    storedPsi = complex(zeros(nNodes,0));
+    storedA = zeros(nEdges,0);
+    storedPhi = zeros(nNodes,0);
+    storedTimes = zeros(1,0);
+end
 observations = cell(numel(observers),estimatedSteps);
 diagnostics = repmat(struct('iterations',0,'couplingResidual',0,'dt',0), ...
     estimatedSteps,1);
@@ -41,8 +52,16 @@ diagnostics = repmat(struct('iterations',0,'couplingResidual',0,'dt',0), ...
 time = options.StartTime;
 stepId = 0;
 storeId = 1;
-[storedPsi(:,1),storedA(:,1),storedPhi(:,1)] = stateFields(state);
-storedTimes(1) = time;
+if options.StoreHistory
+    [storedPsi(:,1),storedA(:,1),storedPhi(:,1)] = stateFields(state);
+    storedTimes(1) = time;
+else
+    storeId = 0;
+end
+if ~isempty(options.Writer) && options.WriteInitialSnapshot
+    options.Writer.append(time,options.InitialStepIndex,state,struct());
+    options.Writer.writeCheckpoint(time,options.InitialStepIndex,state,struct());
+end
 
 while time < options.StopTime
     dt = min(options.TimeStep,options.StopTime-time);
@@ -70,16 +89,32 @@ while time < options.StopTime
             mesh,previous,state,model,nextTime,dt,step);
     end
     time = nextTime;
+    if ~isempty(options.Writer)
+        options.Writer.checkpointIfDue(time, ...
+            options.InitialStepIndex+stepId,state,step.diagnostics);
+    end
     if mod(stepId,options.StoreEvery) == 0 || time >= options.StopTime
-        storeId = storeId+1;
-        [storedPsi(:,storeId),storedA(:,storeId),storedPhi(:,storeId)] = ...
-            stateFields(state);
-        storedTimes(storeId) = time;
+        if options.StoreHistory
+            storeId = storeId+1;
+            [storedPsi(:,storeId),storedA(:,storeId),storedPhi(:,storeId)] = ...
+                stateFields(state);
+            storedTimes(storeId) = time;
+        end
+        if ~isempty(options.Writer)
+            options.Writer.append(time,options.InitialStepIndex+stepId, ...
+                state,step.diagnostics);
+        end
     end
 end
 
+if ~isempty(options.Writer)
+    options.Writer.writeCheckpoint(time,options.InitialStepIndex+stepId, ...
+        state,step.diagnostics);
+    options.Writer.complete();
+end
+
 result = struct();
-result.time = storedTimes(1:storeId);
+result.time = storedTimes(:,1:storeId);
 result.orderParameter = storedPsi(:,1:storeId);
 result.edgePotential = storedA(:,1:storeId);
 result.scalarPotential = storedPhi(:,1:storeId);

@@ -4,4 +4,5 @@ function startup
 
 repositoryRoot = fileparts(mfilename('fullpath'));
 addpath(fullfile(repositoryRoot, 'src'));
+addpath(fullfile(repositoryRoot, 'config'));
 end

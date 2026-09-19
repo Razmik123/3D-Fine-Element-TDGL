@@ -33,6 +33,11 @@ Implemented:
 - equipotential current, voltage, ground, and floating-terminal constraints,
   including prescribed total rather than pointwise current;
 - restricted GL-active cell sets for the no-proximity material model;
+- finite-cylinder/vacuum geometry and a remote homogeneous-field vortex-entry
+  experiment;
+- append-only compressed HDF5 trajectories, atomic restart checkpoints, mesh
+  fingerprints, and provenance manifests;
+- explicit CPU, GPU, and automatic sparse-solve execution policies;
 - fixed-step time-series integration and observer recording;
 - gauge-invariant path voltage, terminal electrochemical voltage, and edge
   electric-field extraction;
@@ -73,6 +78,12 @@ run examples/uniform_order_parameter_relaxation.m
 run examples/coupled_uniform_relaxation.m
 ```
 
+Run the cylinder experiment:
+
+```matlab
+run experiments/run_cylinder_vortex_entry.m
+```
+
 ## Source layout
 
 | Package | Responsibility |
@@ -91,12 +102,19 @@ run examples/coupled_uniform_relaxation.m
 | `tdgl.time` | Time integration and observer scheduling |
 | `tdgl.observe` | Gauge-aware voltage and other measurements |
 | `tdgl.post` | Derived fields, energy, and later vortex diagnostics |
+| `tdgl.io` | Streaming trajectories, restart checkpoints, provenance |
+| `tdgl.compute` | CPU/GPU selection and linear solves |
+| `tdgl.experiments` | Reproducible run and offline-analysis workflows |
 
 Detailed design and data flow are documented in
 [`docs/software-architecture.md`](docs/software-architecture.md). The governing
 equations are in [`docs/mathematical-model.md`](docs/mathematical-model.md), and
 the implemented coupled discretization is described in
 [`docs/coupled-solver.md`](docs/coupled-solver.md).
+Experiment storage is documented in
+[`docs/experiments-and-data.md`](docs/experiments-and-data.md), GPU/CPU behavior
+in [`docs/compute-backends.md`](docs/compute-backends.md), and the cylinder case
+in [`docs/cylinder-vortex-benchmark.md`](docs/cylinder-vortex-benchmark.md).
 
 ## Scientific invariants
 

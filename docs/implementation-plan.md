@@ -17,7 +17,9 @@ Phase 2 has a mixed magnetostatic solver and a transient MQS reference block.
 Phase 4 has a self-consistent staggered reference coupling; its monolithic
 Newton and scalable preconditioner are still pending. Integral-current,
 equipotential terminals and a restricted no-proximity GL subdomain are now
-available as reference implementations for Phase 5.
+available as reference implementations for Phase 5. A finite cylinder in a
+remote homogeneous field, restartable HDF5 experiment runs, offline vortex
+analysis, and profiled CPU/GPU sparse-solve selection are also operational.
 
 ## 2. PDE Toolbox suitability assessment
 

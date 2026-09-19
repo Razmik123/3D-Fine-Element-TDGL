@@ -174,6 +174,21 @@ Use a uniform normal conductor first, then an S–N or superconducting wire belo
 
 **Pass:** imposed integral current recovered, terminal currents balance, voltage is gauge invariant, and steady line-integral voltage is path independent to tolerance.
 
+### 8.8 Finite cylinder and vortex entry
+
+Place a finite superconducting cylinder inside a larger coaxial vacuum domain
+with padding both radially and beyond both end caps. Ramp a homogeneous axial
+field through gauge-consistent tangential vector-potential data on the remote
+outer boundary only. Track Meissner screening, demagnetizing field, the first
+surface suppression of $|\psi|$, phase-winding faces, and connected vortex
+segments.
+
+**Pass:** the same curved mesh reproduces the homogeneous field at roundoff when
+superconducting response is disabled; current and gauge residuals meet solver
+tolerance; first-entry field/time and vortex paths converge under at least three
+mesh sizes, four time steps, and increasing radial/axial vacuum padding; CPU and
+GPU physical observables agree below discretization error.
+
 ## 9. Exterior-domain verification
 
 For a fixed specimen and source, solve with geometrically increasing vacuum domains and at least two outer-boundary shapes. Compare fields near the specimen, moment, energy, and vortex state. Fit the truncation trend where possible.
