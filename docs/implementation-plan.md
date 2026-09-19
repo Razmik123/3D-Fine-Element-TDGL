@@ -12,7 +12,10 @@ Use MATLAB PDE Toolbox for geometry import, tetrahedral mesh prototyping, scalar
 
 The first end-to-end physics target is magnetoquasistatic TDGL coupled to a surrounding truncated vacuum domain. FEM–BEM exterior coupling and full electromagnetic-wave coupling are later, separate milestones.
 
-No production solver is implemented in this research checkpoint.
+Implementation status (2026-09-19): Phases 1 and 3 foundations are operational.
+Phase 2 has a mixed magnetostatic solver and a transient MQS reference block.
+Phase 4 has a self-consistent staggered reference coupling; its monolithic
+Newton and scalable preconditioner are still pending.
 
 ## 2. PDE Toolbox suitability assessment
 
@@ -202,4 +205,9 @@ At every checkpoint: run unit and convergence tests, record MATLAB version, revi
 
 ## 8. Immediate next implementation task
 
-After scientific review of these documents, Phase 1 should begin with a tiny hand-checkable two-tetrahedron mesh. The first code checkpoint should contain only topology, orientations, basis evaluation, quadrature, and exact-sequence unit tests—not coupled physics. This isolates the most consequential 3-D finite-element conventions before nonlinear TDGL complexity is introduced.
+Implement terminal constraints and the no-proximity restricted GL domain before
+claiming general S–N transport. In parallel, formulate the complete monolithic
+residual/Jacobian using the verified staggered blocks as independent references.
+The next acceptance checkpoint must include imposed total-current conservation,
+terminal voltage consistency, a manufactured coupled solution, and an
+energy/work balance under drive.

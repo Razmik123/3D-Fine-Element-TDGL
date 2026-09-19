@@ -1,4 +1,6 @@
 %UNIFORM_ORDER_PARAMETER_RELAXATION Relax a homogeneous TDGL state.
+repositoryRoot = fileparts(fileparts(mfilename('fullpath')));
+addpath(repositoryRoot);
 startup;
 mesh = tdgl.geometry.boxMesh([2 2 2]);
 model = struct( ...

@@ -1,4 +1,6 @@
 %VACUUM_UNIFORM_FIELD Reproduce a uniform magnetic field in a vacuum box.
+repositoryRoot = fileparts(fileparts(mfilename('fullpath')));
+addpath(repositoryRoot);
 startup;
 mesh = tdgl.geometry.boxMesh([3 3 3],[-1 1;-1 1;-1 1]);
 targetB = [0 0 0.2];

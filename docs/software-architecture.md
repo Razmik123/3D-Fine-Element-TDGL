@@ -129,6 +129,14 @@ with tangential outer-boundary data and a mixed Coulomb constraint. The saddle s
 
 This kernel currently requires tangential data on the complete exterior boundary. Later variants will add scattered-field, source-coil, transient-conductivity, and FEM–BEM closures.
 
+### Transient electromagnetic kernel
+
+`tdgl.solvers.stepElectromagnetic` adds the conductivity mass, superconducting
+phase and screening currents, physical scalar potential, weak current
+continuity, and the mixed Coulomb constraint. Scalar-potential unknowns exist
+only on conducting connected components, each with an explicit or automatic
+reference value.
+
 ### Order-parameter kernel
 
 `tdgl.solvers.stepOrderParameter` solves a fully implicit backward-Euler step for prescribed $\mathbf A$ and $\phi$:
@@ -142,7 +150,16 @@ $$
 
 The temporal link makes the nodal time-gauge transformation exact for the discrete step. A damped Newton method solves the real/imaginary block system. `tdgl.time.integrateOrderParameter` repeats the step and records observers.
 
-This is a prescribed-field subsystem, not yet the final self-consistent TDGL–Maxwell solve.
+This remains independently usable as a prescribed-field subsystem.
+
+### Coupled reference kernel
+
+`tdgl.solvers.stepCoupledStaggered` alternates the fully implicit nonlinear
+order-parameter and transient electromagnetic solves to a fixed-point
+tolerance. `tdgl.time.integrateCoupled` evaluates time-dependent model and
+outer-boundary providers, stores all primary fields, and runs read-only
+observers. The algebraic blocks and current sign conventions are recorded in
+[`coupled-solver.md`](coupled-solver.md).
 
 ## 6. Boundaries and terminals
 
@@ -184,13 +201,18 @@ $$
 
 Surface averages and terminal measurements are observers. In a time-varying magnetic field, a reported voltage must identify the terminal surfaces and lead/path convention.
 
-## 8. Next coupled milestone
+## 8. Next production milestone
 
-The next implementation checkpoint adds a monolithic residual/Jacobian with blocks for
+The next solver checkpoint adds a monolithic residual/Jacobian with blocks for
 
 $$
 (\operatorname{Re}\psi,\operatorname{Im}\psi,
 \mathbf A,\phi,p,\lambda_{\mathrm{terminal}}).
 $$
 
-It will add superconducting-current assembly, normal conductivity, the scalar-potential current-continuity equation, Maxwell time mass, terminal multipliers, and energy/work diagnostics. Only after its manufactured and conservation tests pass will proximity, large-domain topology, and adaptivity be added.
+Superconducting-current assembly, normal conductivity, Maxwell time mass, and
+scalar-potential current continuity are already exercised by the staggered
+reference solver. The monolithic checkpoint will reuse those verified blocks
+and add terminal multipliers, complete block Jacobians, and energy/work
+diagnostics. Proximity interfaces, large-domain topology, and adaptivity remain
+separate gated modules.

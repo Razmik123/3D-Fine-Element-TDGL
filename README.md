@@ -12,7 +12,9 @@ The production direction is:
 
 ## Current implementation status
 
-The repository currently contains the verified finite-element foundation, not yet the complete monolithic TDGL–MQS production solver.
+The repository now contains a verified finite-element foundation and a
+self-consistent staggered TDGL–MQS reference solver. It is not yet the final
+monolithic, topology-aware production solver.
 
 Implemented:
 
@@ -25,14 +27,19 @@ Implemented:
 - declarative materials, interfaces, boundary conditions, and terminals;
 - gauge-aware path voltage and electrochemical-potential observers;
 - fully implicit nonlinear TDGL order-parameter stepping for prescribed $\mathbf A$ and $\phi$;
+- transient MQS edge/nodal solve with superconducting screening, Ohmic current,
+  current continuity, and a mixed Coulomb constraint;
+- self-consistent staggered TDGL–MQS time stepping with convergence diagnostics;
 - fixed-step time-series integration and observer recording;
+- gauge-invariant path voltage, terminal electrochemical voltage, and edge
+  electric-field extraction;
 - automated MATLAB unit tests.
 
 Not yet implemented:
 
-- monolithic feedback from superconducting/normal current into transient Maxwell;
-- the production scalar-potential current-continuity block;
-- normal-metal proximity assembly;
+- monolithic Newton coupling and scalable block preconditioning;
+- integral transport-current terminal constraints;
+- no-proximity restricted GL subdomains and assembled interface barrier terms;
 - scalable cohomology basis for large multiply connected meshes;
 - adaptive 3-D remeshing and FEM–BEM exterior coupling.
 
@@ -60,6 +67,7 @@ Run the first examples:
 ```matlab
 run examples/vacuum_uniform_field.m
 run examples/uniform_order_parameter_relaxation.m
+run examples/coupled_uniform_relaxation.m
 ```
 
 ## Source layout
@@ -73,6 +81,7 @@ run examples/uniform_order_parameter_relaxation.m
 | `tdgl.assembly` | Sparse finite-element operators and nonlinear residuals |
 | `tdgl.materials` | Explicit material records |
 | `tdgl.problem` | Experiment, interface, boundary, and terminal compilation |
+| `tdgl.state` | Validated coupled field-state construction |
 | `tdgl.boundary` | Boundary selection and finite-element interpolation |
 | `tdgl.physics` | Applied/source field definitions |
 | `tdgl.solvers` | Linear, mixed, and nonlinear field solves |
@@ -80,7 +89,11 @@ run examples/uniform_order_parameter_relaxation.m
 | `tdgl.observe` | Gauge-aware voltage and other measurements |
 | `tdgl.post` | Derived fields, energy, and later vortex diagnostics |
 
-Detailed design and data flow are documented in [`docs/software-architecture.md`](docs/software-architecture.md). The governing equations are in [`docs/mathematical-model.md`](docs/mathematical-model.md).
+Detailed design and data flow are documented in
+[`docs/software-architecture.md`](docs/software-architecture.md). The governing
+equations are in [`docs/mathematical-model.md`](docs/mathematical-model.md), and
+the implemented coupled discretization is described in
+[`docs/coupled-solver.md`](docs/coupled-solver.md).
 
 ## Scientific invariants
 

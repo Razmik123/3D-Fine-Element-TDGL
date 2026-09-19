@@ -64,6 +64,32 @@ verifyEqual(testCase,problem.interfaces.orderParameterType,"de-gennes");
 verifyEqual(testCase,problem.interfaces.gammaB,0.4);
 end
 
+function testMaterialFieldsAreExpandedByRegion(testCase)
+base = tdgl.geometry.boxMesh([2 1 1]);
+centers = arrayfun(@(cellId) mean(base.nodes( ...
+    double(base.cells(cellId,:)),1)),(1:size(base.cells,1)).');
+regionIds = 1+(centers >= 0.5);
+mesh = tdgl.mesh.fromArrays(base.nodes,base.cells,'RegionIds',regionIds);
+mesh = tdgl.mesh.tagBoxBoundary(mesh,[0 1;0 1;0 1]);
+assignments(1) = struct('regionId',1,'material', ...
+    tdgl.materials.create("superconductor",'Conductivity',2));
+assignments(2) = struct('regionId',2,'material', ...
+    tdgl.materials.create("vacuum",'RelativePermeability',4));
+experiment = baseExperiment();
+experiment.interfaceModels = tdgl.problem.interfaceModel([1 2],"de-gennes");
+problem = tdgl.problem.compile(mesh,assignments,experiment);
+fields = tdgl.problem.materialFields(problem);
+
+verifyEqual(testCase,fields.conductivity(regionIds == 1), ...
+    2*ones(nnz(regionIds == 1),1));
+verifyEqual(testCase,fields.conductivity(regionIds == 2), ...
+    zeros(nnz(regionIds == 2),1));
+verifyEqual(testCase,fields.muInv(regionIds == 2), ...
+    0.25*ones(nnz(regionIds == 2),1));
+verifyTrue(testCase,all(fields.glActive(regionIds == 1)));
+verifyFalse(testCase,any(fields.glActive(regionIds == 2)));
+end
+
 function experiment = baseExperiment
 experiment = struct();
 experiment.name = "unit-test";
